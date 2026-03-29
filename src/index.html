@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tortoise.js | Official Docs</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-vsc-dark-plus.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav class="container">
+            <div class="logo">🐢 Tortoise<span class="js">.js</span></div>
+            <ul class="nav-links">
+                <li><a href="javascript:void(0)" id="btn-intro" class="nav-btn active"
+                        onclick="switchTab('intro')">Introduction</a></li>
+                <li><a href="javascript:void(0)" id="btn-api" class="nav-btn" onclick="switchTab('api')">API
+                        Reference</a></li>
+                <li><a href="javascript:void(0)" id="btn-download" class="nav-btn"
+                        onclick="switchTab('download')">Download</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section id="tab-intro" class="tab-content active">
+            <div class="content-wrapper">
+                <h1>Introduction</h1>
+                <p>Tortoise.js is a high-performance, object-oriented wrapper for the HTML5 Canvas API. It focuses on
+                    <strong>security</strong>, <strong>simplicity</strong>, and <strong>performance</strong>.</p>
+
+                <h3>Why Tortoise?</h3>
+                <p>Unlike raw Canvas context, Tortoise provides a controlled environment where elements are managed as
+                    objects, preventing common memory leaks, out-of-bounds rendering, and raw DOM manipulation
+                    conflicts.</p>
+
+                <h3>Basic Implementation</h3>
+                <pre><code class="language-javascript">try {
+    const canvas = document.getElementById('game');
+    tortoise.init(canvas);
+    console.log("Engine started!");
+} catch (err) {
+    console.error("Initialization failed:", err);
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="tab-api" class="tab-content">
+            <div class="api-layout">
+                <aside class="sidebar">
+                    <div class="sidebar-inner">
+                        <h4>Managment</h4>
+                        <a href="#api-init">init()</a>
+                        <a href="#api-config">config()</a>
+                        <a href="#api-state">State Control</a>
+
+                        <h4>Elements</h4>
+                        <a href="#api-el-create">Create & Remove</a>
+                        <a href="#api-el-id">Identification</a>
+
+                        <h4>Styles</h4>
+                        <a href="#api-styles-edit">editStyle()</a>
+                        <a href="#api-styles-props">Properties List</a>
+
+                        <h4>Events</h4>
+                        <a href="#api-events-on">onEvent()</a>
+                        <a href="#api-coll">Collisions</a>
+
+                        <h4>Classes</h4>
+                        <a href="#api-cl-manage">Group Management</a>
+                        <a href="#api-cl-elements">Bulk Operations</a>
+                    </div>
+                </aside>
+
+                <article class="doc-content">
+                    <h1>API Reference - v1.0.0</h1>
+                    <p>Complete technical documentation for the Tortoise.js engine, based on the
+                        <code>tortoise.js</code> stable implementation.</p>
+
+                    <hr>
+
+                    <h2 id="api-init">1. Management Functions</h2>
+                    <p>Core functions to control the engine lifecycle and security layers.</p>
+
+                    <h3>tortoise.init(canvasElement)</h3>
+                    <p>Initializes the engine and applies the <code>applySecurity</code> layer. This prevents
+                        unauthorized use of raw 2D context methods like <code>fillRect</code> or <code>drawImage</code>
+                        outside the internal loop.</p>
+                    <pre><code class="language-javascript">const canvas = document.getElementById('game');
+tortoise.init(canvas);</code></pre>
+
+                    <h3 id="api-config">tortoise.config(options)</h3>
+                    <p>Adjusts global rendering and performance settings:</p>
+                    <ul>
+                        <li><strong>fps</strong>: Target frames per second (Default: 60).</li>
+                        <li><strong>minFps</strong>: Triggers <code>onError</code> if performance drops below this
+                            value.</li>
+                        <li><strong>autoFrameClearing</strong>: Automatically clears the canvas every frame.</li>
+                        <li><strong>autoRemoveOutterElements</strong>: Removes elements that move outside the canvas
+                            boundaries.</li>
+                        <li><strong>forEachFrame</strong>: Callback executed every cycle before rendering.</li>
+                    </ul>
+
+                    <h3 id="api-state">State Control</h3>
+                    <p><strong>tortoise.togglePause()</strong>: Toggles the pause state without clearing memory.</p>
+                    <p><strong>tortoise.kill()</strong>: Stops the loop, clears the canvas, and wipes all elements and
+                        classes.</p>
+                    <p><strong>tortoise.onError(callback)</strong>: Sets a custom handler for security violations or
+                        performance drops.</p>
+
+                    <hr>
+
+                    <h2 id="api-el-create">2. Elements</h2>
+                    <p>Managing individual objects within the Canvas environment.</p>
+
+                    <h3>tortoise.elements.create(id)</h3>
+                    <p>Registers a new <code>CanvasElement</code>. IDs must be unique.</p>
+
+                    <h3 id="api-el-id">tortoise.elements.editId(oldId, newName)</h3>
+                    <p>Updates an element's ID globally and triggers the <code>renamed</code> event.</p>
+
+                    <h3>tortoise.elements.remove(id)</h3>
+                    <p>Permanently deletes the element and triggers the <code>deleted</code> event.</p>
+
+                    <hr>
+
+                    <h2 id="api-styles-edit">3. Styles & Properties</h2>
+                    <p>The <code>editStyle(id, styles)</code> method controls appearance, physics, and transformations.
+                    </p>
+
+                    <h3 id="api-styles-props">Property Reference</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Description</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>defaultMode</code></td>
+                                <td>Render mode: 'polygon', 'circle', 'text', or 'image'.</td>
+                                <td>'polygon'</td>
+                            </tr>
+                            <tr>
+                                <td><code>x, y</code></td>
+                                <td>Coordinates on the canvas.</td>
+                                <td>0, 0</td>
+                            </tr>
+                            <tr>
+                                <td><code>zIndex</code></td>
+                                <td>Stacking order (higher values render on top).</td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td><code>anchor</code></td>
+                                <td>Pivot point for rotation/positioning <code>{x, y}</code>.</td>
+                                <td>0.5, 0.5</td>
+                            </tr>
+                            <tr>
+                                <td><code>sides</code></td>
+                                <td>Number of sides for polygons (e.g., 4 for rectangles).</td>
+                                <td>4</td>
+                            </tr>
+                            <tr>
+                                <td><code>shadow</code></td>
+                                <td>Object: <code>{color, blur, x, y}</code>.</td>
+                                <td>blur: 0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <hr>
+
+                    <h2 id="api-events-on">4. Events</h2>
+                    <p>Tortoise.js uses an internal event propagation system.</p>
+
+                    <h3>tortoise.elements.onEvent(id, eventName, callback)</h3>
+                    <p><strong>Supported Events:</strong> <code>click</code>, <code>collision</code>,
+                        <code>deleted</code>, <code>styled</code>, <code>renamed</code>.</p>
+
+                    <h2 id="api-coll">Collision System (AABB)</h2>
+                    <p>Detects boundary overlaps and returns the hit direction.</p>
+                    <pre><code class="language-javascript">tortoise.elements.onEvent('player', 'collision', (data) => {
+    // data.collisionLocal returns 'top', 'bottom', 'left', or 'right'
+    data.element1.preventWalkTrough(); // Resets position to prevent overlapping
+});</code></pre>
+
+                    <hr>
+
+                    <h2 id="api-cl-manage">5. Classes</h2>
+                    <p>Organize and manipulate groups of elements simultaneously.</p>
+
+                    <h3>tortoise.classes.create(className)</h3>
+                    <p>Initializes a new group array.</p>
+
+                    <h3 id="api-cl-elements">tortoise.classes.createElements(className, quantity)</h3>
+                    <p>Spawns multiple elements with unique IDs, automatically assigned to the specified class.</p>
+
+                    <h3>tortoise.classes.remove(className)</h3>
+                    <p>Deletes the entire class and removes all associated elements from the scene.</p>
+
+                    <h3>tortoise.classes.editName(oldName, newName)</h3>
+                    <p>Renames the class and updates the <code>className</code> property for all child elements.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="tab-download" class="tab-content">
+            <div class="download-section">
+                <h2>Package Versions</h2>
+                <p>Below, we have a list of all versions found on GitHub; the help in the documentation is always about the most recent version. If you are not using npm, you can extract the tortoise.js file.</p>
+                <div id="version-list">
+                    <div class="loader">Checking repository...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vsc-dark-plus.min.css"
+        rel="stylesheet" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
