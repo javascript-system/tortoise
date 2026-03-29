@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tortoise.js - Test Suite</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #1a1a2e;
+            margin: 0;
+        }
+
+        canvas {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="appCanvas" width="800" height="600"></canvas>
+
+    <script src="tortoise.js"></script>
+    <script>
+        const canvas = document.getElementById('appCanvas');
+
+        // 1. INIT & ERROR HANDLING
+        tortoise.init(canvas);
+
+        tortoise.onError((err) => {
+            alert("✅ ERROR SYSTEM SUCCESS!\nTortoise caught the error perfectly and executed tortoise.kill().\n\nError: " + err);
+        });
+
+        // 2. CONFIG
+        tortoise.config({
+            fps: 60,
+            autoFrameClearing: true,
+            forEachFrame: sysLoop,
+        });
+
+        let testObjects = [];
+        let collisionTestActive = false;
+
+        // --- UI CONSTRUCTION ---
+
+        // Main Title
+        tortoise.elements.create('mainTitle');
+        tortoise.elements.editStyle('mainTitle', {
+            defaultMode: 'text', textContent: 'Tortoise.js - Test Suite',
+            color: '#e94560', fontSize: 28, x: 250, y: 30, anchor: { x: 0, y: 0 },
+            shadow: { color: '#000', blur: 4, x: 2, y: 2 }
+        });
+
+        // Subtitle
+        tortoise.elements.create('subtitle');
+        tortoise.elements.editStyle('subtitle', {
+            defaultMode: 'text', textContent: 'Click the buttons below to test features:',
+            color: '#a2a8d3', fontSize: 16, x: 230, y: 80, anchor: { x: 0, y: 0 }
+        });
+
+        // FPS Spinner
+        tortoise.elements.create('spinner');
+        tortoise.elements.editStyle('spinner', {
+            defaultMode: 'polygon', sides: 5, width: 40, height: 40,
+            color: '#e94560', x: 730, y: 50, anchor: { x: 0.5, y: 0.5 }
+        });
+
+        // Helper function for visual buttons
+        function createCanvasButton(id, text, yPos, onClickCallback) {
+            tortoise.elements.create(id);
+            tortoise.elements.editStyle(id, {
+                width: 300, height: 45, color: '#0f3460', borderColor: '#e94560', borderWidth: 2,
+                x: 400, y: yPos, anchor: { x: 0.5, y: 0.5 },
+                shadow: { color: 'rgba(0,0,0,0.5)', blur: 5, x: 0, y: 5 }
+            });
+
+            const txtId = id + '_txt';
+            tortoise.elements.create(txtId);
+            tortoise.elements.editStyle(txtId, {
+                defaultMode: 'text', textContent: text, color: '#fff', fontSize: 16,
+                x: 270, y: yPos - 8, anchor: { x: 0, y: 0 }, zIndex: 10
+            });
+
+            tortoise.elements.onEvent(id, 'click', () => {
+                tortoise.elements.editStyle(id, { color: '#e94560' });
+                setTimeout(() => tortoise.elements.editStyle(id, { color: '#0f3460' }), 100);
+                onClickCallback();
+            });
+
+            // Redirect text click to button
+            tortoise.elements.onEvent(txtId, 'click', () => {
+                tortoise.elements.triggerEvent(id, 'click', {});
+            });
+        }
+
+        // --- BUTTONS ---
+
+        // TEST 1: Classes & Styles (NEW CLASS API)
+        createCanvasButton('btn1', '1. Test Classes and Styles', 150, () => {
+            alert("Creating a 'shapes' class with 3 different elements...");
+
+            // Create class and elements without returns
+            tortoise.classes.create('shapes');
+            tortoise.classes.createElements('shapes', 3);
+
+            // Access the generated array strictly to read the IDs
+            const shapesArray = tortoise.classes['shapes'];
+            const id0 = shapesArray[0].id;
+            const id1 = shapesArray[1].id;
+            const id2 = shapesArray[2].id;
+
+            // Edit styles using the Manager API
+            tortoise.elements.editStyle(id0, { defaultMode: 'circle', width: 40, height: 40, color: '#4CAF50', x: 100, y: 350 });
+            tortoise.elements.editStyle(id1, { defaultMode: 'polygon', sides: 3, width: 40, height: 40, color: '#FFEB3B', x: 200, y: 350 });
+            tortoise.elements.editStyle(id2, { defaultMode: 'polygon', sides: 6, width: 40, height: 40, color: '#2196F3', x: 300, y: 350, opacity: 0.5 });
+
+            // Events
+            tortoise.elements.onEvent(id0, 'styled', (ev) => {
+            });
+            tortoise.elements.editStyle(id0, { shadow: { blur: 10, color: '#fff', x: 0, y: 0 } });
+
+            // Rename class
+            tortoise.classes.editName('shapes', 'coolShapes');
+
+            // Store IDs for the game loop
+            testObjects.push(id0, id1, id2);
+        });
+
+        // TEST 2: Collision
+        createCanvasButton('btn2', '2. Test Collision (Walk)', 220, () => {
+            alert("Two squares will walk and collide. 'collision' event triggers preventWalkTrough().");
+
+            tortoise.elements.create('col1');
+            tortoise.elements.editStyle('col1', { width: 50, height: 50, color: '#FF5722', x: 100, y: 450 });
+
+            tortoise.elements.create('col2');
+            tortoise.elements.editStyle('col2', { width: 50, height: 50, color: '#00BCD4', x: 600, y: 450 });
+
+            tortoise.elements.onEvent('col1', 'collision', (ev) => {
+                if (ev.element2.id === 'col2') {
+                    tortoise.elements.editStyle('col1', { color: '#fff' });
+                    tortoise.elements.editStyle('col2', { color: '#fff' });
+                    ev.element1.preventWalkTrough();
+                }
+            });
+
+            collisionTestActive = true;
+        });
+
+        // TEST 3: Rename & Delete
+        createCanvasButton('btn3', '3. Test Rename and Delete', 290, () => {
+            tortoise.elements.create('tempObj');
+            tortoise.elements.editStyle('tempObj', { width: 60, height: 60, color: '#9C27B0', x: 400, y: 450 });
+
+            tortoise.elements.onEvent('tempObj', 'renamed', (ev) => alert(`Element renamed to: ${ev.newName}`));
+            tortoise.elements.onEvent('tempObj', 'deleted', () => alert("Element deleted from memory successfully!"));
+
+            setTimeout(() => {
+                tortoise.elements.editId('tempObj', 'superAwesomeName');
+                setTimeout(() => {
+                    tortoise.elements.remove('superAwesomeName');
+                }, 1500);
+            }, 1000);
+        });
+
+        // TEST 4: Pause
+        createCanvasButton('btn4', '4. Pause / Unpause Engine', 360, () => {
+            tortoise.togglePause();
+            alert("Game paused! Physics stopped. Press SPACE to unpause.");
+        });
+
+        // TEST 5: Error & Kill
+        createCanvasButton('btn5', '5. Test Error and Kill()', 430, () => {
+            tortoise.elements.create('mainTitle');
+        });
+
+        // --- KEYBOARD LISTENER ---
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                tortoise.togglePause();
+            }
+        });
+
+        // --- MAIN LOOP ---
+        function sysLoop() {
+            // Read direct properties to animate
+            let currentRot = tortoise.elements['spinner'].style.rotation;
+            tortoise.elements.editStyle('spinner', { rotation: currentRot + 3 });
+
+            // Animate test objects using their IDs
+            testObjects.forEach(id => {
+                let objRot = tortoise.elements[id].style.rotation;
+                tortoise.elements.editStyle(id, { rotation: objRot + 1 });
+            });
+
+            if (collisionTestActive) {
+                let x1 = tortoise.elements['col1'].style.x;
+                if (x1 < 325) tortoise.elements.editStyle('col1', { x: x1 + 2 });
+
+                let x2 = tortoise.elements['col2'].style.x;
+                if (x2 > 375) tortoise.elements.editStyle('col2', { x: x2 - 2 });
+            }
+        }
+
+    </script>
+</body>
+
+</html>
